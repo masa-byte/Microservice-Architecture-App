@@ -1,4 +1,4 @@
-package WalCart.CustomerMicroservice;
+package com.walcart.customermicroservice;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

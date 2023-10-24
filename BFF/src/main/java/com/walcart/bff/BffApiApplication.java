@@ -1,13 +1,13 @@
-package WalCart.CustomerMicroservice;
+package com.walcart.bff;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class CustomerMicroserviceApplication {
+public class BffApiApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(CustomerMicroserviceApplication.class, args);
+		SpringApplication.run(BffApiApplication.class, args);
 	}
 
 }
