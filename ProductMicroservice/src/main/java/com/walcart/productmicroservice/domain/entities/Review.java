@@ -1,17 +1,15 @@
-package com.walcart.productmicroservice.domain;
+package com.walcart.productmicroservice.domain.entities;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
-
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 @Entity
 @Data
-@Getter
-@Setter
 @NoArgsConstructor
-@AllArgsConstructor
+@Table(name = "reviews")
 public class Review {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,14 +22,20 @@ public class Review {
     private String description;
 
     @Column(name = "rating", nullable = false)
-    private Long rating;
+    private Integer rating;
 
     @Column(name = "date_created", nullable = false)
     @CreationTimestamp
-    private LocalDateTime dateCreated;
+    private ZonedDateTime dateCreated;
 
     @ManyToOne
     @JoinColumn(name = "product_id")
     private Product product;
 
+    public Review(String title, String description, Integer rating, Product product) {
+        this.title = title;
+        this.description = description;
+        this.rating = rating;
+        this.product = product;
+    }
 }

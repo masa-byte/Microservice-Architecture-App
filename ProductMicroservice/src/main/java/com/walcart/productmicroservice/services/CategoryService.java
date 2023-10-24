@@ -1,9 +1,10 @@
 package com.walcart.productmicroservice.services;
 
+import com.walcart.productmicroservice.domain.dtos.CategoryDTO;
 import com.walcart.productmicroservice.repositories.CategoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import com.walcart.productmicroservice.domain.Category;
+import com.walcart.productmicroservice.domain.entities.Category;
 import java.util.List;
 import java.util.Optional;
 
@@ -16,11 +17,13 @@ public class CategoryService {
         this.categoryRepository = categoryRepository;
     }
 
-    public Category createCategory(Category category) {
-        return categoryRepository.save(category);
+    public Category createCategory(CategoryDTO categoryDTO) {
+        return categoryRepository.save(new Category(
+                categoryDTO.getName(),
+                categoryDTO.getDescription()));
     }
 
-    public Optional<Category> getCategoryById(Long id) {
+    public Optional<Category> getCategoryById(long id) {
         return categoryRepository.findById(id);
     }
 
@@ -28,17 +31,22 @@ public class CategoryService {
         return categoryRepository.findAll();
     }
 
-    public Category updateCategory(Long id, Category updatedCategory) {
+    public Category updateCategory(long id, CategoryDTO updatedCategoryDTO) {
         return categoryRepository.findById(id)
                 .map(existingCategory -> {
-                    existingCategory.setName(updatedCategory.getName());
-                    existingCategory.setDescription(updatedCategory.getDescription());
+                    existingCategory.setName(updatedCategoryDTO.getName());
+                    existingCategory.setDescription(updatedCategoryDTO.getDescription());
                     return categoryRepository.save(existingCategory);
                 })
                 .orElse(null);
     }
 
-    public void deleteCategory(Long id) {
-        categoryRepository.deleteById(id);
+    public boolean deleteCategory(long id) {
+        return categoryRepository.findById(id)
+                .map(existingCategory -> {
+                    categoryRepository.delete(existingCategory);
+                    return true;
+                })
+                .orElse(false);
     }
 }

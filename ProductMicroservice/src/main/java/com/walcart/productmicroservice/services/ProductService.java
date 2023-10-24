@@ -1,6 +1,9 @@
 package com.walcart.productmicroservice.services;
 
-import com.walcart.productmicroservice.domain.Product;
+import com.walcart.productmicroservice.domain.dtos.CategoryDTO;
+import com.walcart.productmicroservice.domain.dtos.ProductDTO;
+import com.walcart.productmicroservice.domain.entities.Product;
+import com.walcart.productmicroservice.domain.enumerations.ProductStatus;
 import com.walcart.productmicroservice.repositories.ProductRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,11 +19,20 @@ public class ProductService {
         this.productRepository = productRepository;
     }
 
-    public Product createProduct(Product product) {
-        return productRepository.save(product);
+    public Product createProduct(ProductDTO productDTO) {
+        return productRepository.save(new Product(
+                productDTO.getName(),
+                productDTO.getDescription(),
+                productDTO.getBrand(),
+                productDTO.getPrice(),
+                0,
+                ProductStatus.AVAILABLE,
+                productDTO.getQuantity(),
+                CategoryDTO.mapToCategory(productDTO.getCategoryDTO()))
+                );
     }
 
-    public Optional<Product> getProductById(Long id) {
+    public Optional<Product> getProductById(long id) {
         return productRepository.findById(id);
     }
 
@@ -28,17 +40,27 @@ public class ProductService {
         return productRepository.findAll();
     }
 
-    public Product updateProduct(Long id, Product updatedProduct) {
+    public Product updateProduct(long id, ProductDTO updatedProductDTO) {
         return productRepository.findById(id)
                 .map(existingProduct -> {
-                    existingProduct.setName(updatedProduct.getName());
-                    existingProduct.setPrice(updatedProduct.getPrice());
+                    existingProduct.setName(updatedProductDTO.getName());
+                    existingProduct.setDescription(updatedProductDTO.getDescription());
+                    existingProduct.setPrice(updatedProductDTO.getPrice());
+                    existingProduct.setQuantity(updatedProductDTO.getQuantity());
+                    existingProduct.setSalesCounter(updatedProductDTO.getSalesCounter());
+                    existingProduct.setCategory(CategoryDTO.mapToCategory(updatedProductDTO.getCategoryDTO()));
+                    existingProduct.setStatus(updatedProductDTO.getStatus());
                     return productRepository.save(existingProduct);
                 })
                 .orElse(null);
     }
 
-    public void deleteProduct(Long id) {
-        productRepository.deleteById(id);
+    public boolean deleteProduct(long id) {
+        return productRepository.findById(id)
+                .map(existingProduct -> {
+                    productRepository.delete(existingProduct);
+                    return true;
+                })
+                .orElse(false);
     }
 }

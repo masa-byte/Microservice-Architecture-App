@@ -1,14 +1,13 @@
-package com.walcart.productmicroservice.domain;
+package com.walcart.productmicroservice.domain.entities;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Set;
+import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
 import com.walcart.productmicroservice.domain.enumerations.*;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -16,10 +15,9 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 @Entity
 @Data
-@Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Table(name = "products")
 public class Product {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,6 +29,9 @@ public class Product {
     @Column(name = "description", nullable = false)
     private String description;
 
+    @Column(name = "brand", nullable = false)
+    private String brand;
+
     @Column(precision = 10, scale = 2, nullable = false)
     private BigDecimal price;
 
@@ -38,20 +39,35 @@ public class Product {
     private Integer salesCounter;
 
     @Column(name = "status", nullable = false)
+    @Enumerated(EnumType.STRING)
     private ProductStatus status;
+
+    @Column(name = "quantity", nullable = false)
+    private Integer quantity;
 
     @Column(name = "date_created", nullable = false)
     @CreationTimestamp
-    private LocalDateTime dateCreated;
+    private ZonedDateTime dateCreated;
 
     @Column(name = "last_updated", nullable = false)
     @UpdateTimestamp
-    private LocalDateTime lastUpdated;
+    private ZonedDateTime lastUpdated;
 
-    @OneToMany(mappedBy = "product")
-    private Set<Review> reviews = new HashSet<>();
+    @OneToMany(mappedBy = "product", cascade = CascadeType.REMOVE)
+    private List<Review> reviews = new ArrayList<>();
 
     @ManyToOne
     @JoinColumn(name = "category_id")
     private Category category;
+
+    public Product(String name, String description, String brand, BigDecimal price, Integer salesCounter, ProductStatus status, Integer quantity, Category category) {
+        this.name = name;
+        this.description = description;
+        this.brand = brand;
+        this.price = price;
+        this.salesCounter = salesCounter;
+        this.status = status;
+        this.quantity = quantity;
+        this.category = category;
+    }
 }

@@ -1,4 +1,4 @@
-package WalCart.OrderMicroservice;
+package com.walcart.ordermicroservice;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
