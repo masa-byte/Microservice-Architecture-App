@@ -1,12 +1,13 @@
 package com.walcart.ordermicroservice.services;
 
-import com.walcart.ordermicroservice.domain.dtos.OrderDTO;
-import com.walcart.ordermicroservice.domain.dtos.PaymentDTO;
+import com.walcart.ordermicroservice.domain.dtos.*;
 import com.walcart.ordermicroservice.domain.entities.Order;
+import com.walcart.ordermicroservice.domain.entities.OrderItem;
 import com.walcart.ordermicroservice.repositories.OrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -20,13 +21,19 @@ public class OrderService {
     }
 
     public Order createOrder(OrderDTO orderDTO) {
+        List<OrderItemDTO> orderItemsDTOs = orderDTO.getItems();
+        List<OrderItem> orderItems = new ArrayList<>();
+        for (OrderItemDTO orderItemDTO : orderItemsDTOs) {
+            orderItems.add(OrderItemDTO.mapToOrderItem(orderItemDTO));
+        }
+
         return orderRepository.save(new Order(
                 orderDTO.getTotalPrice(),
                 orderDTO.getStatus(),
                 null,
                 orderDTO.getShipmentAddress(),
                 PaymentDTO.mapToPayment(orderDTO.getPaymentDTO()),
-                orderDTO.getItems(),
+                orderItems,
                 orderDTO.getCustomerId()));
     }
 

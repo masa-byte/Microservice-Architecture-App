@@ -1,22 +1,51 @@
 package com.walcart.productmicroservice.services;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.rabbitmq.client.DeliverCallback;
 import com.walcart.productmicroservice.domain.dtos.CategoryDTO;
 import com.walcart.productmicroservice.domain.dtos.ProductDTO;
 import com.walcart.productmicroservice.domain.entities.Product;
 import com.walcart.productmicroservice.domain.enumerations.ProductStatus;
 import com.walcart.productmicroservice.repositories.ProductRepository;
+import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.ConnectionFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeoutException;
 
 @Service
 public class ProductService {
+    private static Connection connection = null;
+    private static Channel productChannel = null;
+    private final static String PRODUCT_QUEUE_NAME = "products";
+    private static String consumerName;
     private final ProductRepository productRepository;
 
+    private final ObjectMapper objectMapper;
+
     @Autowired
-    public ProductService(ProductRepository productRepository) {
+    public ProductService(ProductRepository productRepository) throws IOException, TimeoutException {
+        consumerName = "product-microservice"; // + id for replication of microservice
+        this.objectMapper = new ObjectMapper();
         this.productRepository = productRepository;
+        this.configureConnection();
+    }
+
+    private void configureConnection() throws IOException, TimeoutException {
+        ConnectionFactory factory = new ConnectionFactory();
+        factory.setHost("localhost");
+        factory.setPort(5672);
+        factory.setUsername("guest");
+        factory.setPassword("guest");
+
+        connection = factory.newConnection();
+        productChannel = connection.createChannel();
+        productChannel.queueDeclare(PRODUCT_QUEUE_NAME, true, false, false, null);
     }
 
     public Product createProduct(ProductDTO productDTO) {
@@ -28,8 +57,19 @@ public class ProductService {
                 0,
                 ProductStatus.AVAILABLE,
                 productDTO.getQuantity(),
-                CategoryDTO.mapToCategory(productDTO.getCategoryDTO()))
-                );
+                CategoryDTO.mapToCategoryID(productDTO.getCategoryDTO())
+                )
+        );
+    }
+
+    public void createProductMessageBroker(ProductDTO productDTO) throws IOException {
+        DeliverCallback deliverCallback = (consumerTag, delivery) -> {
+            String message = new String(delivery.getBody(), "UTF-8");
+            System.out.println(consumerName + " received message id: " + message);
+            ProductDTO productDTO1 = objectMapper.readValue(message, ProductDTO.class);
+            createProduct(productDTO1);
+        };
+        productChannel.basicConsume(PRODUCT_QUEUE_NAME, true, deliverCallback, consumerTag -> {});
     }
 
     public Optional<Product> getProductById(long id) {
@@ -41,15 +81,25 @@ public class ProductService {
     }
 
     public Product updateProduct(long id, ProductDTO updatedProductDTO) {
+        System.out.println(updatedProductDTO);
         return productRepository.findById(id)
                 .map(existingProduct -> {
-                    existingProduct.setName(updatedProductDTO.getName());
-                    existingProduct.setDescription(updatedProductDTO.getDescription());
-                    existingProduct.setPrice(updatedProductDTO.getPrice());
-                    existingProduct.setQuantity(updatedProductDTO.getQuantity());
-                    existingProduct.setSalesCounter(updatedProductDTO.getSalesCounter());
-                    existingProduct.setCategory(CategoryDTO.mapToCategory(updatedProductDTO.getCategoryDTO()));
-                    existingProduct.setStatus(updatedProductDTO.getStatus());
+                    if(updatedProductDTO.getName() != null)
+                        existingProduct.setName(updatedProductDTO.getName());
+                    if(updatedProductDTO.getDescription() != null)
+                        existingProduct.setDescription(updatedProductDTO.getDescription());
+                    if(updatedProductDTO.getPrice() != null)
+                        existingProduct.setPrice(updatedProductDTO.getPrice());
+                    if(updatedProductDTO.getBrand() != null)
+                        existingProduct.setBrand(updatedProductDTO.getBrand());
+                    if(updatedProductDTO.getQuantity() != null)
+                        existingProduct.setQuantity(updatedProductDTO.getQuantity());
+                    if(updatedProductDTO.getSalesCounter() != null)
+                        existingProduct.setSalesCounter(updatedProductDTO.getSalesCounter());
+                    if(updatedProductDTO.getCategoryDTO() != null)
+                        existingProduct.setCategory(CategoryDTO.mapToCategoryID(updatedProductDTO.getCategoryDTO()));
+                    if(updatedProductDTO.getStatus() != null)
+                        existingProduct.setStatus(updatedProductDTO.getStatus());
                     return productRepository.save(existingProduct);
                 })
                 .orElse(null);

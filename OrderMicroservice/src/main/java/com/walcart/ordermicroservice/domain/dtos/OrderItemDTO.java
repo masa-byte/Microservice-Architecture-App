@@ -13,6 +13,13 @@ public class OrderItemDTO {
     private Integer quantity;
     private OrderDTO orderDTO;
 
+    public static OrderItem mapToOrderItem(OrderItemDTO orderItemDTO) {
+        return new OrderItem(
+                orderItemDTO.getQuantity(),
+                orderItemDTO.getProductId(),
+                OrderDTO.mapToOrder(orderItemDTO.getOrderDTO())
+        );
+    }
     public static OrderItemDTO mapToOrderItemDTO(OrderItem orderItem) {
         return new OrderItemDTO(
                 orderItem.getProductId(),

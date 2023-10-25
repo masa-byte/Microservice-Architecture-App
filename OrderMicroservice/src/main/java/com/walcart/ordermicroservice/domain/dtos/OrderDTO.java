@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -22,21 +23,31 @@ public class OrderDTO {
     private ZonedDateTime shipped;
     private Address shipmentAddress;
     private PaymentDTO paymentDTO;
-    private List<OrderItem> items;
+    private List<OrderItemDTO> items;
     private Long customerId;
 
     public static Order mapToOrder(OrderDTO orderDTO) {
+        List<OrderItemDTO> orderItemsDTOs = orderDTO.getItems();
+        List<OrderItem> orderItems = new ArrayList<>();
+        for (OrderItemDTO orderItemDTO : orderItemsDTOs) {
+            orderItems.add(OrderItemDTO.mapToOrderItem(orderItemDTO));
+        }
         return new Order(
                 orderDTO.getTotalPrice(),
                 orderDTO.getStatus(),
                 orderDTO.getShipped(),
                 orderDTO.getShipmentAddress(),
                 PaymentDTO.mapToPayment(orderDTO.getPaymentDTO()),
-                orderDTO.getItems(),
+                orderItems,
                 orderDTO.getCustomerId());
     }
 
     public static OrderDTO mapToOrderDTO(Order order) {
+        List<OrderItem> orderItems = order.getItems();
+        List<OrderItemDTO> orderItemsDTOs = new ArrayList<>();
+        for (OrderItem orderItem : orderItems) {
+            orderItemsDTOs.add(OrderItemDTO.mapToOrderItemDTO(orderItem));
+        }
         return new OrderDTO(
                 order.getId(),
                 order.getTotalPrice(),
@@ -44,7 +55,7 @@ public class OrderDTO {
                 order.getShipped(),
                 order.getShipmentAddress(),
                 PaymentDTO.mapToPaymentDTO(order.getPayment()),
-                order.getItems(),
+                orderItemsDTOs,
                 order.getCustomerId());
     }
 }

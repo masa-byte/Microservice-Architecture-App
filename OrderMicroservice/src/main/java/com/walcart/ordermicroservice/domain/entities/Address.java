@@ -11,7 +11,6 @@ import lombok.AllArgsConstructor;
 @NoArgsConstructor
 @Embeddable
 public class Address {
-
     @Column(name = "address")
     private String address;
 

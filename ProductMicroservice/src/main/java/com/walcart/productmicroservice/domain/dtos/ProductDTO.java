@@ -31,7 +31,7 @@ public class ProductDTO {
                 productDTO.getSalesCounter(),
                 productDTO.getStatus(),
                 productDTO.getQuantity(),
-                CategoryDTO.mapToCategory(productDTO.getCategoryDTO()));
+                CategoryDTO.mapToCategoryID(productDTO.getCategoryDTO()));
     }
 
     public static ProductDTO mapToProductDTO(Product product) {

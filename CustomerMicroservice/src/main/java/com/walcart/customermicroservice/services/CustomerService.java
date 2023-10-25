@@ -43,11 +43,18 @@ public class CustomerService {
     public Customer updateCustomer(long id, CustomerDTO updatedCustomerDTO) {
         return customerRepository.findById(id)
                 .map(existingCustomer -> {
-                    existingCustomer.setFirstName(updatedCustomerDTO.getFirstName());
-                    existingCustomer.setLastName(updatedCustomerDTO.getLastName());
-                    existingCustomer.setEmail(updatedCustomerDTO.getEmail());
-                    existingCustomer.setPassword(updatedCustomerDTO.getPassword());
-                    existingCustomer.setTelephone(updatedCustomerDTO.getTelephone());
+                    if(updatedCustomerDTO.getFirstName() != null)
+                        existingCustomer.setFirstName(updatedCustomerDTO.getFirstName());
+                    if(updatedCustomerDTO.getLastName() != null)
+                        existingCustomer.setLastName(updatedCustomerDTO.getLastName());
+                    if(updatedCustomerDTO.getEmail() != null)
+                        existingCustomer.setEmail(updatedCustomerDTO.getEmail());
+                    if(updatedCustomerDTO.getPassword() != null)
+                        existingCustomer.setPassword(updatedCustomerDTO.getPassword());
+                    if(updatedCustomerDTO.getTelephone() != null)
+                        existingCustomer.setTelephone(updatedCustomerDTO.getTelephone());
+                    if(updatedCustomerDTO.getEnabled() != null)
+                        existingCustomer.setEnabled(updatedCustomerDTO.getEnabled());
                     return customerRepository.save(existingCustomer);
                 })
                 .orElse(null);
@@ -56,7 +63,8 @@ public class CustomerService {
     public boolean deleteCustomer(long id) {
         return customerRepository.findById(id)
                 .map(existingCustomer -> {
-                    customerRepository.delete(existingCustomer);
+                    existingCustomer.setEnabled(false);
+                    customerRepository.save(existingCustomer);
                     return true;
                 })
                 .orElse(false);

@@ -18,9 +18,7 @@ public class CategoryService {
     }
 
     public Category createCategory(CategoryDTO categoryDTO) {
-        return categoryRepository.save(new Category(
-                categoryDTO.getName(),
-                categoryDTO.getDescription()));
+        return categoryRepository.save(CategoryDTO.mapToCategoryNoID(categoryDTO));
     }
 
     public Optional<Category> getCategoryById(long id) {
@@ -34,8 +32,10 @@ public class CategoryService {
     public Category updateCategory(long id, CategoryDTO updatedCategoryDTO) {
         return categoryRepository.findById(id)
                 .map(existingCategory -> {
-                    existingCategory.setName(updatedCategoryDTO.getName());
-                    existingCategory.setDescription(updatedCategoryDTO.getDescription());
+                    if(updatedCategoryDTO.getName() != null)
+                        existingCategory.setName(updatedCategoryDTO.getName());
+                    if(updatedCategoryDTO.getDescription() != null)
+                        existingCategory.setDescription(updatedCategoryDTO.getDescription());
                     return categoryRepository.save(existingCategory);
                 })
                 .orElse(null);

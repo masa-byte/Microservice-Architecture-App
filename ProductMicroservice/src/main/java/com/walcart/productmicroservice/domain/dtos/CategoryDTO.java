@@ -13,7 +13,11 @@ public class CategoryDTO {
     private String name;
     private String description;
 
-    public static Category mapToCategory(CategoryDTO categoryDTO) {
+    public static Category mapToCategoryID(CategoryDTO categoryDTO) {
+        return new Category(categoryDTO.getId(), categoryDTO.getName(), categoryDTO.getDescription());
+    }
+
+    public static Category mapToCategoryNoID(CategoryDTO categoryDTO) {
         return new Category(categoryDTO.getName(), categoryDTO.getDescription());
     }
 

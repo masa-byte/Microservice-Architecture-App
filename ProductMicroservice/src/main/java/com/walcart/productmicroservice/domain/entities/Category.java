@@ -31,4 +31,9 @@ public class Category {
         this.name = name;
         this.description = description;
     }
+
+    public Category(Long id, String name, String description) {
+        this(name, description);
+        this.id = id;
+    }
 }

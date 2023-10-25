@@ -48,7 +48,12 @@
 			<artifactId>spring-data-jpa</artifactId>
 			<version>3.1.5</version>
 		</dependency>
-	</dependencies>
+        <dependency>
+            <groupId>com.rabbitmq</groupId>
+            <artifactId>amqp-client</artifactId>
+            <version>5.19.0</version>
+        </dependency>
+    </dependencies>
 
 	<build>
 		<plugins>
