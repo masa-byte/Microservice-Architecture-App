@@ -3,6 +3,7 @@ package com.walcart.bff.controllers;
 import com.walcart.bff.domain.dtos.CategoryDTO;
 import com.walcart.bff.domain.dtos.CustomerDTO;
 import com.walcart.bff.domain.dtos.ProductDTO;
+import com.walcart.bff.domain.dtos.ReviewDTO;
 import com.walcart.bff.services.CustomerMicroservice;
 import com.walcart.bff.services.OrderMicroservice;
 import com.walcart.bff.services.ProductMicroservice;
@@ -60,6 +61,63 @@ public class BFFAPIController {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    @PostMapping("/reviews")
+    public ResponseEntity<ReviewDTO> createReview(
+            @RequestBody ReviewDTO reviewDTO,
+            @RequestParam("productId") long productId,
+            @RequestParam("customerId") long customerId
+    ) {
+        try {
+            Optional<ProductDTO> product = productMicroservice.getProductById(productId);
+            Optional<CustomerDTO> customer = customerMicroservice.getCustomerById(customerId);
+            if (product.isPresent() && customer.isPresent()) {
+                reviewDTO.setProductDTO(product.get());
+                reviewDTO.setCustomerId(customer.get().getId());
+                ReviewDTO review = productMicroservice.createReview(reviewDTO);
+                return new ResponseEntity<>(review, HttpStatus.CREATED);
+            }
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PostMapping("/products/message")
+    public ResponseEntity<HttpStatus> createProductMessage(@RequestBody ProductDTO productDTO, @RequestParam("categoryId") long categoryId) {
+        try {
+            Optional<CategoryDTO> category = productMicroservice.getCategoryById(categoryId);
+            if (category.isPresent()) {
+                productDTO.setCategoryDTO(category.get());
+                productMicroservice.createProductMessageBroker(productDTO);
+                return new ResponseEntity<>(HttpStatus.CREATED);
+            }
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PostMapping("/reviews/message")
+    public ResponseEntity<HttpStatus> createReviewMessage(
+            @RequestBody ReviewDTO reviewDTO,
+            @RequestParam("productId") long productId,
+            @RequestParam("customerId") long customerId
+            ) {
+        try {
+            Optional<ProductDTO> product = productMicroservice.getProductById(productId);
+            Optional<CustomerDTO> customer = customerMicroservice.getCustomerById(customerId);
+            if (product.isPresent() && customer.isPresent()) {
+                reviewDTO.setProductDTO(product.get());
+                reviewDTO.setCustomerId(customer.get().getId());
+                productMicroservice.createReviewMessageBroker(reviewDTO);
+                return new ResponseEntity<>(HttpStatus.CREATED);
+            }
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
     //endregion
 
     //region GET BY
@@ -110,6 +168,18 @@ public class BFFAPIController {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    @GetMapping("/reviews/{id}")
+    public ResponseEntity<ReviewDTO> getReviewById(@PathVariable("id") long id) {
+        try {
+            Optional<ReviewDTO> review = productMicroservice.getReviewById(id);
+            return review
+                    .map(reviewDTO -> new ResponseEntity<>(reviewDTO, HttpStatus.OK))
+                    .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
     //endregion
 
     //region GET ALL
@@ -138,6 +208,16 @@ public class BFFAPIController {
         try {
             List<ProductDTO> products = productMicroservice.getAllProducts();
             return new ResponseEntity<>(products, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("/reviews")
+    public ResponseEntity<Iterable<ReviewDTO>> getAllReviews() {
+        try {
+            List<ReviewDTO> reviews = productMicroservice.getAllReviews();
+            return new ResponseEntity<>(reviews, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -228,6 +308,18 @@ public class BFFAPIController {
     public ResponseEntity<HttpStatus> deleteProduct(@PathVariable("id") long id) {
         try {
             boolean deleted = productMicroservice.deleteProduct(id);
+            return deleted
+                    ? new ResponseEntity<>(HttpStatus.OK)
+                    : new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @DeleteMapping("/reviews/{id}")
+    public ResponseEntity<HttpStatus> deleteReview(@PathVariable("id") long id) {
+        try {
+            boolean deleted = productMicroservice.deleteReview(id);
             return deleted
                     ? new ResponseEntity<>(HttpStatus.OK)
                     : new ResponseEntity<>(HttpStatus.NOT_FOUND);

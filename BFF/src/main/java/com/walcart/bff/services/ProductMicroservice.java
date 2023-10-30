@@ -6,6 +6,7 @@ import com.walcart.bff.domain.dtos.ProductDTO;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.ConnectionFactory;
+import com.walcart.bff.domain.dtos.ReviewDTO;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -25,10 +26,13 @@ public class ProductMicroservice {
     private final ObjectMapper objectMapper;
     private final String categoryApiUrl = productsMicroserviceApiUrl + "/categories";
     private final String productApiUrl = productsMicroserviceApiUrl + "/products";
+    private final String reviewApiUrl = productsMicroserviceApiUrl + "/reviews";
 
     private static Connection connection = null;
     private static Channel productChannel = null;
+    private static Channel reviewChannel = null;
     private static final String PRODUCT_QUEUE_NAME = "products";
+    private static final String REVIEW_QUEUE_NAME = "reviews";
 
     public ProductMicroservice() throws IOException, TimeoutException {
         this.httpClient = HttpClient.newHttpClient();
@@ -44,8 +48,11 @@ public class ProductMicroservice {
         factory.setPassword("guest");
 
         connection = factory.newConnection();
+
         productChannel = connection.createChannel();
         productChannel.queueDeclare(PRODUCT_QUEUE_NAME, true, false, false, null);
+        reviewChannel = connection.createChannel();
+        reviewChannel.queueDeclare(REVIEW_QUEUE_NAME, true, false, false, null);
     }
 
     public CategoryDTO createCategory(CategoryDTO categoryDTO) throws IOException, InterruptedException {
@@ -88,9 +95,35 @@ public class ProductMicroservice {
         }
     }
 
+    public ReviewDTO createReview(ReviewDTO reviewDTO) throws IOException, InterruptedException {
+        String url = reviewApiUrl;
+        URI uri = URI.create(url);
+        String requestBody = objectMapper.writeValueAsString(reviewDTO);
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(uri)
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(requestBody))
+                .build();
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        int statusCode = response.statusCode();
+        System.out.println(statusCode);
+        if (statusCode == 201) {
+            String responseBody = response.body();
+            ReviewDTO createdReviewDTO = objectMapper.readValue(responseBody, ReviewDTO.class);
+            return createdReviewDTO;
+        } else {
+            return null;
+        }
+    }
+
     public void createProductMessageBroker(ProductDTO productDTO) throws IOException {
         String message = objectMapper.writeValueAsString(productDTO);
         productChannel.basicPublish("", PRODUCT_QUEUE_NAME, null, message.getBytes());
+    }
+
+    public void createReviewMessageBroker(ReviewDTO reviewDTO) throws IOException {
+        String message = objectMapper.writeValueAsString(reviewDTO);
+        productChannel.basicPublish("", REVIEW_QUEUE_NAME, null, message.getBytes());
     }
 
     public Optional<CategoryDTO> getCategoryById(long id) throws IOException, InterruptedException {
@@ -129,6 +162,25 @@ public class ProductMicroservice {
         }
     }
 
+    public Optional<ReviewDTO> getReviewById(long id) throws IOException, InterruptedException {
+        String url = reviewApiUrl + "/" + id;
+        URI uri = URI.create(url);
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(uri)
+                .GET()
+                .build();
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        int statusCode = response.statusCode();
+        System.out.println(statusCode);
+        if (statusCode == 200) {
+            String responseBody = response.body();
+            ReviewDTO reviewDTO = objectMapper.readValue(responseBody, ReviewDTO.class);
+            return Optional.of(reviewDTO);
+        } else {
+            return Optional.empty();
+        }
+    }
+
     public List<CategoryDTO> getAllCategories() throws IOException, InterruptedException {
         String url = categoryApiUrl;
         URI uri = URI.create(url);
@@ -160,6 +212,25 @@ public class ProductMicroservice {
             String responseBody = response.body();
             ProductDTO[] productDTOs = objectMapper.readValue(responseBody, ProductDTO[].class);
             return List.of(productDTOs);
+        } else {
+            return null;
+        }
+    }
+
+    public List<ReviewDTO> getAllReviews() throws IOException, InterruptedException {
+        String url = reviewApiUrl;
+        URI uri = URI.create(url);
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(uri)
+                .GET()
+                .build();
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        int statusCode = response.statusCode();
+        System.out.println(statusCode);
+        if (statusCode == 200) {
+            String responseBody = response.body();
+            ReviewDTO[] reviewDTOs = objectMapper.readValue(responseBody, ReviewDTO[].class);
+            return List.of(reviewDTOs);
         } else {
             return null;
         }
@@ -219,6 +290,18 @@ public class ProductMicroservice {
 
     public boolean deleteProduct(long id) throws IOException, InterruptedException {
         String url = productApiUrl + "/" + id;
+        URI uri = URI.create(url);
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(uri)
+                .DELETE()
+                .build();
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        int statusCode = response.statusCode();
+        return statusCode == 200;
+    }
+
+    public boolean deleteReview(long id) throws IOException, InterruptedException {
+        String url = reviewApiUrl + "/" + id;
         URI uri = URI.create(url);
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(uri)

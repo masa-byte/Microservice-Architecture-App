@@ -13,6 +13,7 @@ public class ReviewDTO {
     private String title;
     private String description;
     private Integer rating;
+    private Long customerId;
     private ProductDTO productDTO;
 
     public static ReviewDTO mapToReviewDTO(Review review) {
@@ -21,6 +22,7 @@ public class ReviewDTO {
                 review.getTitle(),
                 review.getDescription(),
                 review.getRating(),
+                review.getCustomerId(),
                 ProductDTO.mapToProductDTO(review.getProduct()));
     }
 }

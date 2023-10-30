@@ -70,4 +70,16 @@ public class Product {
         this.quantity = quantity;
         this.category = category;
     }
+
+    public Product(Long id, String name, String description, String brand, BigDecimal price, Integer salesCounter, ProductStatus status, Integer quantity, Category category) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.brand = brand;
+        this.price = price;
+        this.salesCounter = salesCounter;
+        this.status = status;
+        this.quantity = quantity;
+        this.category = category;
+    }
 }

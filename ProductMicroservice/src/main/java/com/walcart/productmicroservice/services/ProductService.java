@@ -20,20 +20,20 @@ import java.util.concurrent.TimeoutException;
 
 @Service
 public class ProductService {
-    private static Connection connection = null;
-    private static Channel productChannel = null;
-    private final static String PRODUCT_QUEUE_NAME = "products";
-    private static String consumerName;
     private final ProductRepository productRepository;
-
+    private Connection connection = null;
+    private Channel productChannel = null;
+    private final static String PRODUCT_QUEUE_NAME = "products";
+    private final String consumerName;
     private final ObjectMapper objectMapper;
 
     @Autowired
     public ProductService(ProductRepository productRepository) throws IOException, TimeoutException {
-        consumerName = "product-microservice"; // + id for replication of microservice
+        this.consumerName = "product-microservice"; // + id for replication of microservice
         this.objectMapper = new ObjectMapper();
         this.productRepository = productRepository;
         this.configureConnection();
+        this.createProductMessageBroker();
     }
 
     private void configureConnection() throws IOException, TimeoutException {
@@ -43,9 +43,9 @@ public class ProductService {
         factory.setUsername("guest");
         factory.setPassword("guest");
 
-        connection = factory.newConnection();
-        productChannel = connection.createChannel();
-        productChannel.queueDeclare(PRODUCT_QUEUE_NAME, true, false, false, null);
+        this.connection = factory.newConnection();
+        this.productChannel = connection.createChannel();
+        this.productChannel.queueDeclare(PRODUCT_QUEUE_NAME, true, false, false, null);
     }
 
     public Product createProduct(ProductDTO productDTO) {
@@ -62,12 +62,11 @@ public class ProductService {
         );
     }
 
-    public void createProductMessageBroker(ProductDTO productDTO) throws IOException {
+    private void createProductMessageBroker() throws IOException {
         DeliverCallback deliverCallback = (consumerTag, delivery) -> {
             String message = new String(delivery.getBody(), "UTF-8");
-            System.out.println(consumerName + " received message id: " + message);
-            ProductDTO productDTO1 = objectMapper.readValue(message, ProductDTO.class);
-            createProduct(productDTO1);
+            ProductDTO productDTO = objectMapper.readValue(message, ProductDTO.class);
+            createProduct(productDTO);
         };
         productChannel.basicConsume(PRODUCT_QUEUE_NAME, true, deliverCallback, consumerTag -> {});
     }

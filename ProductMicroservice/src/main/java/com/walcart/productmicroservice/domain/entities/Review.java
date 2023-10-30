@@ -28,14 +28,18 @@ public class Review {
     @CreationTimestamp
     private ZonedDateTime dateCreated;
 
+    @Column(name = "customer_id", nullable = false)
+    private Long customerId;
+
     @ManyToOne
     @JoinColumn(name = "product_id")
     private Product product;
 
-    public Review(String title, String description, Integer rating, Product product) {
+    public Review(String title, String description, Integer rating, Long customerId, Product product) {
         this.title = title;
         this.description = description;
         this.rating = rating;
+        this.customerId = customerId;
         this.product = product;
     }
 }

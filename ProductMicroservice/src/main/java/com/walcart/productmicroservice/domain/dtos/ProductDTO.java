@@ -22,8 +22,21 @@ public class ProductDTO {
     private Integer quantity;
     private CategoryDTO categoryDTO;
 
-    public static Product mapToProduct(ProductDTO productDTO) {
+    public static Product mapToProductNoID(ProductDTO productDTO) {
         return new Product(
+                productDTO.getName(),
+                productDTO.getDescription(),
+                productDTO.getBrand(),
+                productDTO.getPrice(),
+                productDTO.getSalesCounter(),
+                productDTO.getStatus(),
+                productDTO.getQuantity(),
+                CategoryDTO.mapToCategoryID(productDTO.getCategoryDTO()));
+    }
+
+    public static Product mapToProductID(ProductDTO productDTO) {
+        return new Product(
+                productDTO.getId(),
                 productDTO.getName(),
                 productDTO.getDescription(),
                 productDTO.getBrand(),
