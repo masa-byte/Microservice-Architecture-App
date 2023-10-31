@@ -20,7 +20,7 @@ import java.util.concurrent.TimeoutException;
 public class ReviewService {
     private final ReviewRepository reviewRepository;
     private Connection connection = null;
-    private Channel reviewChannel = null;
+    private Channel createReviewChannel = null;
     private final static String REVIEWS_QUEUE_NAME = "reviews";
     private final String consumerName;
     private final ObjectMapper objectMapper;
@@ -42,8 +42,8 @@ public class ReviewService {
         factory.setPassword("guest");
 
         this.connection = factory.newConnection();
-        this.reviewChannel = connection.createChannel();
-        this.reviewChannel.queueDeclare(REVIEWS_QUEUE_NAME, true, false, false, null);
+        this.createReviewChannel = connection.createChannel();
+        this.createReviewChannel.queueDeclare(REVIEWS_QUEUE_NAME, true, false, false, null);
     }
 
     public Review createReview(ReviewDTO reviewDTO) {
@@ -61,7 +61,7 @@ public class ReviewService {
             ReviewDTO reviewDTO = objectMapper.readValue(message, ReviewDTO.class);
             createReview(reviewDTO);
         };
-        reviewChannel.basicConsume(REVIEWS_QUEUE_NAME, true, deliverCallback, consumerTag -> {});
+        createReviewChannel.basicConsume(REVIEWS_QUEUE_NAME, true, deliverCallback, consumerTag -> {});
     }
 
     public Optional<Review> getReviewById(long id) {

@@ -27,11 +27,12 @@ public class OrderMicroservice {
     private final ObjectMapper objectMapper;
     private final String ordersApiUrl = ordersMicroserviceApiUrl + "/orders";
     private final String orderItemsApiUrl = ordersMicroserviceApiUrl + "/orderItems";
-    private final String paymentsApiUrl = ordersMicroserviceApiUrl + "/payments";
 
     private Connection connection = null;
-    private Channel orderItemChannel = null;
+    private Channel updateOrderItemChannel = null;
+    private Channel createOrderChannel = null;
     private final String ORDER_ITEMS_QUEUE_NAME = "order-items";
+    private final String ORDERS_QUEUE_NAME = "orders";
     @Autowired
     public OrderMicroservice() throws IOException, TimeoutException {
         this.httpClient = HttpClient.newHttpClient();
@@ -49,8 +50,10 @@ public class OrderMicroservice {
 
         connection = factory.newConnection();
 
-        orderItemChannel = connection.createChannel();
-        orderItemChannel.queueDeclare(ORDER_ITEMS_QUEUE_NAME, true, false, false, null);
+        updateOrderItemChannel = connection.createChannel();
+        updateOrderItemChannel.queueDeclare(ORDER_ITEMS_QUEUE_NAME, true, false, false, null);
+        createOrderChannel = connection.createChannel();
+        createOrderChannel.queueDeclare(ORDERS_QUEUE_NAME, true, false, false, null);
     }
 
     public OrderDTO createOrder(OrderDTO orderDTO) throws IOException, InterruptedException {
@@ -71,6 +74,11 @@ public class OrderMicroservice {
         } else {
             return null;
         }
+    }
+
+    public void createOrderMessageBroker(OrderDTO orderDTO) throws IOException, InterruptedException {
+        String message = objectMapper.writeValueAsString(orderDTO);
+        createOrderChannel.basicPublish("", ORDERS_QUEUE_NAME, null, message.getBytes());
     }
 
     public Optional<OrderDTO> getOrderById(long id) throws IOException, InterruptedException {
@@ -164,7 +172,7 @@ public class OrderMicroservice {
             public final boolean _status = status;
         };
         String message = objectMapper.writeValueAsString(DTO);
-        orderItemChannel.basicPublish("", ORDER_ITEMS_QUEUE_NAME, null, message.getBytes());
+        updateOrderItemChannel.basicPublish("", ORDER_ITEMS_QUEUE_NAME, null, message.getBytes());
     }
 
     public boolean deleteOrder(long id) throws IOException, InterruptedException {

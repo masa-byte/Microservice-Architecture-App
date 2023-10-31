@@ -1,5 +1,6 @@
 package com.walcart.productmicroservice.services;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rabbitmq.client.DeliverCallback;
 import com.walcart.productmicroservice.domain.dtos.CategoryDTO;
@@ -22,8 +23,10 @@ import java.util.concurrent.TimeoutException;
 public class ProductService {
     private final ProductRepository productRepository;
     private Connection connection = null;
-    private Channel productChannel = null;
+    private Channel createProductChannel = null;
+    private Channel updateProductSalesChannel = null;
     private final static String PRODUCT_QUEUE_NAME = "products";
+    private final static String UPDATE_PRODUCT_QUEUE_NAME = "update-products";
     private final String consumerName;
     private final ObjectMapper objectMapper;
 
@@ -34,6 +37,7 @@ public class ProductService {
         this.productRepository = productRepository;
         this.configureConnection();
         this.createProductMessageBroker();
+        this.updateProductSalesCounterMessageBroker();
     }
 
     private void configureConnection() throws IOException, TimeoutException {
@@ -44,8 +48,11 @@ public class ProductService {
         factory.setPassword("guest");
 
         this.connection = factory.newConnection();
-        this.productChannel = connection.createChannel();
-        this.productChannel.queueDeclare(PRODUCT_QUEUE_NAME, true, false, false, null);
+
+        this.createProductChannel = connection.createChannel();
+        this.createProductChannel.queueDeclare(PRODUCT_QUEUE_NAME, true, false, false, null);
+        this.updateProductSalesChannel = connection.createChannel();
+        this.updateProductSalesChannel.queueDeclare(UPDATE_PRODUCT_QUEUE_NAME, true, false, false, null);
     }
 
     public Product createProduct(ProductDTO productDTO) {
@@ -68,7 +75,7 @@ public class ProductService {
             ProductDTO productDTO = objectMapper.readValue(message, ProductDTO.class);
             createProduct(productDTO);
         };
-        productChannel.basicConsume(PRODUCT_QUEUE_NAME, true, deliverCallback, consumerTag -> {});
+        createProductChannel.basicConsume(PRODUCT_QUEUE_NAME, true, deliverCallback, consumerTag -> {});
     }
 
     public Optional<Product> getProductById(long id) {
@@ -114,6 +121,18 @@ public class ProductService {
                     return productRepository.save(existingProduct);
                 })
                 .orElse(null);
+    }
+
+    private void updateProductSalesCounterMessageBroker() throws IOException {
+        DeliverCallback deliverCallback = (consumerTag, delivery) -> {
+            String message = new String(delivery.getBody(), "UTF-8");
+            System.out.println(message);
+            JsonNode jsonNode = objectMapper.readTree(message);
+            long productId = jsonNode.get("productId").asLong();
+            int quantity = jsonNode.get("quantity").asInt();
+            updateProductSalesCounter(productId, quantity);
+        };
+        updateProductSalesChannel.basicConsume(UPDATE_PRODUCT_QUEUE_NAME, true, deliverCallback, consumerTag -> {});
     }
 
     public boolean deleteProduct(long id) {

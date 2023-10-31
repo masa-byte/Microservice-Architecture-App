@@ -29,8 +29,8 @@ public class ProductMicroservice {
     private final String reviewApiUrl = productsMicroserviceApiUrl + "/reviews";
 
     private Connection connection = null;
-    private Channel productChannel = null;
-    private Channel reviewChannel = null;
+    private Channel createProductChannel = null;
+    private Channel createReviewChannel = null;
     private static final String PRODUCT_QUEUE_NAME = "products";
     private static final String REVIEW_QUEUE_NAME = "reviews";
 
@@ -49,10 +49,10 @@ public class ProductMicroservice {
 
         connection = factory.newConnection();
 
-        productChannel = connection.createChannel();
-        productChannel.queueDeclare(PRODUCT_QUEUE_NAME, true, false, false, null);
-        reviewChannel = connection.createChannel();
-        reviewChannel.queueDeclare(REVIEW_QUEUE_NAME, true, false, false, null);
+        createProductChannel = connection.createChannel();
+        createProductChannel.queueDeclare(PRODUCT_QUEUE_NAME, true, false, false, null);
+        createReviewChannel = connection.createChannel();
+        createReviewChannel.queueDeclare(REVIEW_QUEUE_NAME, true, false, false, null);
     }
 
     public CategoryDTO createCategory(CategoryDTO categoryDTO) throws IOException, InterruptedException {
@@ -117,12 +117,12 @@ public class ProductMicroservice {
 
     public void createProductMessageBroker(ProductDTO productDTO) throws IOException {
         String message = objectMapper.writeValueAsString(productDTO);
-        productChannel.basicPublish("", PRODUCT_QUEUE_NAME, null, message.getBytes());
+        createProductChannel.basicPublish("", PRODUCT_QUEUE_NAME, null, message.getBytes());
     }
 
     public void createReviewMessageBroker(ReviewDTO reviewDTO) throws IOException {
         String message = objectMapper.writeValueAsString(reviewDTO);
-        productChannel.basicPublish("", REVIEW_QUEUE_NAME, null, message.getBytes());
+        createProductChannel.basicPublish("", REVIEW_QUEUE_NAME, null, message.getBytes());
     }
 
     public Optional<CategoryDTO> getCategoryById(long id) throws IOException, InterruptedException {

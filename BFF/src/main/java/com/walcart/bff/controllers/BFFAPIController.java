@@ -167,6 +167,39 @@ public class BFFAPIController {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    @PostMapping("/orders/message")
+    public ResponseEntity<HttpStatus> createOrderMessage(
+            @RequestBody CreateOrderRequest request,
+            @RequestParam("customerId") long customerId,
+            @RequestParam("paypalPaymentId") String paypalPaymentId
+    ) {
+        try {
+            OrderDTO orderDTO = request.getOrderDTO();
+            List<OrderItemDTO> orderItemsDTO = request.getOrderItemsDTO();
+            PaymentDTO paymentDTO = new PaymentDTO(paypalPaymentId);
+            BigDecimal totalPrice = new BigDecimal(0);
+            for (OrderItemDTO orderItemDTO : orderItemsDTO) {
+                Optional<ProductDTO> product = productMicroservice.getProductById(orderItemDTO.getProductId());
+                if (product.isEmpty()) {
+                    return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+                }
+                totalPrice = totalPrice.add(product.get().getPrice().multiply(new BigDecimal(orderItemDTO.getQuantity())));
+            }
+            Optional<CustomerDTO> customer = customerMicroservice.getCustomerById(customerId);
+            if (customer.isPresent()) {
+                orderDTO.setCustomerId(customerId);
+                orderDTO.setPaymentDTO(paymentDTO);
+                orderDTO.setItems(orderItemsDTO);
+                orderDTO.setTotalPrice(totalPrice);
+                orderMicroservice.createOrderMessageBroker(orderDTO);
+                return new ResponseEntity<>(HttpStatus.CREATED);
+            }
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
     //endregion
 
     //region GET BY

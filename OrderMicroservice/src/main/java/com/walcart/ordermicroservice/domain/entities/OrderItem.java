@@ -25,7 +25,7 @@ public class OrderItem {
     @Column(name = "quantity")
     private Integer quantity;
 
-    @Column(name = "rated")
+    @Column(name = "rated", columnDefinition = "boolean default false")
     private Boolean rated;
 
     public OrderItem(Integer quantity, Long productId, Boolean rated) {
