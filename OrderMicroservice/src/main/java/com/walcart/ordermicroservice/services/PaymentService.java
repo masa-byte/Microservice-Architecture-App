@@ -19,10 +19,8 @@ public class PaymentService {
         this.paymentRepository = paymentRepository;
     }
 
-    public Payment createPayment(PaymentDTO paymentDTO) {
-        return paymentRepository.save(new Payment(
-                paymentDTO.getPaypalPaymentId(),
-                OrderDTO.mapToOrder(paymentDTO.getOrderDTO())));
+    public Payment createPayment(String paypalPaymentId) {
+        return paymentRepository.save(new Payment(paypalPaymentId));
     }
 
     public Optional<Payment> getPaymentById(long id) {

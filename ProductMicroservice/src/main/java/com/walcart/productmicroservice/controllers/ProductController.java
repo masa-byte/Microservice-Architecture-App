@@ -53,6 +53,16 @@ public class ProductController {
         return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
     }
 
+    @PutMapping("/sales/{id}")
+    public ResponseEntity<ProductDTO> updateProductSalesCounter(@PathVariable("id") long id, @RequestBody int soldCounter) {
+        Product updatedProduct = productService.updateProductSalesCounter(id, soldCounter);
+        if(updatedProduct != null) {
+            ProductDTO updatedProductDTO = ProductDTO.mapToProductDTO(updatedProduct);
+            return new ResponseEntity<>(updatedProductDTO, HttpStatus.OK);
+        }
+        return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<HttpStatus> deleteProduct(@PathVariable("id") long id) {
         return productService.deleteProduct(id)

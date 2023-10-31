@@ -28,9 +28,9 @@ public class ProductMicroservice {
     private final String productApiUrl = productsMicroserviceApiUrl + "/products";
     private final String reviewApiUrl = productsMicroserviceApiUrl + "/reviews";
 
-    private static Connection connection = null;
-    private static Channel productChannel = null;
-    private static Channel reviewChannel = null;
+    private Connection connection = null;
+    private Channel productChannel = null;
+    private Channel reviewChannel = null;
     private static final String PRODUCT_QUEUE_NAME = "products";
     private static final String REVIEW_QUEUE_NAME = "reviews";
 
@@ -106,7 +106,6 @@ public class ProductMicroservice {
                 .build();
         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
         int statusCode = response.statusCode();
-        System.out.println(statusCode);
         if (statusCode == 201) {
             String responseBody = response.body();
             ReviewDTO createdReviewDTO = objectMapper.readValue(responseBody, ReviewDTO.class);
@@ -171,7 +170,6 @@ public class ProductMicroservice {
                 .build();
         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
         int statusCode = response.statusCode();
-        System.out.println(statusCode);
         if (statusCode == 200) {
             String responseBody = response.body();
             ReviewDTO reviewDTO = objectMapper.readValue(responseBody, ReviewDTO.class);
@@ -226,7 +224,6 @@ public class ProductMicroservice {
                 .build();
         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
         int statusCode = response.statusCode();
-        System.out.println(statusCode);
         if (statusCode == 200) {
             String responseBody = response.body();
             ReviewDTO[] reviewDTOs = objectMapper.readValue(responseBody, ReviewDTO[].class);
@@ -260,6 +257,26 @@ public class ProductMicroservice {
         String url = productApiUrl + "/" + id;
         URI uri = URI.create(url);
         String requestBody = objectMapper.writeValueAsString(updatedProductDTO);
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(uri)
+                .header("Content-Type", "application/json")
+                .PUT(HttpRequest.BodyPublishers.ofString(requestBody))
+                .build();
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        int statusCode = response.statusCode();
+        if (statusCode == 200) {
+            String responseBody = response.body();
+            ProductDTO productDTO = objectMapper.readValue(responseBody, ProductDTO.class);
+            return Optional.of(productDTO);
+        } else {
+            return null;
+        }
+    }
+
+    public Optional<ProductDTO> updateProductSalesCounter(long id, int soldCounter) throws IOException, InterruptedException {
+        String url = productApiUrl + "/sales/" + id;
+        URI uri = URI.create(url);
+        String requestBody = objectMapper.writeValueAsString(soldCounter);
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(uri)
                 .header("Content-Type", "application/json")

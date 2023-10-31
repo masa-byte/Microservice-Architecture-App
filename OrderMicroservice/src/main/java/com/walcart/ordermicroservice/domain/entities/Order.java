@@ -41,23 +41,27 @@ public class Order {
     @Column(name = "shipped")
     private ZonedDateTime shipped;
 
+    @Column(name = "delivered")
+    private ZonedDateTime delivered;
+
     @Embedded
     private Address shipmentAddress;
 
-    @OneToOne(cascade = CascadeType.REMOVE)
-    @JoinColumn(name = "payment_id", referencedColumnName = "id", unique = true)
+    @OneToOne(cascade = CascadeType.ALL, mappedBy = "order")
     private Payment payment;
 
-    @OneToMany(mappedBy = "order", cascade = CascadeType.REMOVE)
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
     private List<OrderItem> items = new ArrayList<>();
 
     @Column(name = "customer_id", nullable = false)
     private Long customerId;
 
-    public Order(BigDecimal totalPrice, OrderStatus status, ZonedDateTime shipped, Address shipmentAddress, Payment payment, List<OrderItem> items, Long customerId) {
+    public Order(BigDecimal totalPrice, OrderStatus status, ZonedDateTime shipped, ZonedDateTime delivered,
+                 Address shipmentAddress, Payment payment, List<OrderItem> items, Long customerId) {
         this.totalPrice = totalPrice;
         this.status = status;
         this.shipped = shipped;
+        this.delivered = delivered;
         this.shipmentAddress = shipmentAddress;
         this.items = items;
         this.payment = payment;

@@ -11,19 +11,14 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class PaymentDTO {
     private String paypalPaymentId;
-    private OrderDTO orderDTO;
 
     public static Payment mapToPayment(PaymentDTO paymentDTO) {
-        return new Payment(
-                paymentDTO.getPaypalPaymentId(),
-                OrderDTO.mapToOrder(paymentDTO.getOrderDTO())
-        );
+        return new Payment(paymentDTO.getPaypalPaymentId());
     }
 
     public static PaymentDTO mapToPaymentDTO(Payment payment) {
         return new PaymentDTO(
-                payment.getPaypalPaymentId(),
-                OrderDTO.mapToOrderDTO(payment.getOrder())
+                payment.getPaypalPaymentId()
         );
     }
 }

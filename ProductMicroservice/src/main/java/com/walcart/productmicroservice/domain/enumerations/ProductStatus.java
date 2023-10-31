@@ -1,5 +1,5 @@
 package com.walcart.productmicroservice.domain.enumerations;
 
 public enum ProductStatus {
-    AVAILABLE, DISCONTINUED
+    AVAILABLE, DISCONTINUED, OUT_OF_STOCK
 }

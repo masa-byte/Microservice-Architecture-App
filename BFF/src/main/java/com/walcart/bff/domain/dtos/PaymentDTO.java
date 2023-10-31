@@ -9,5 +9,4 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class PaymentDTO {
     private String paypalPaymentId;
-    private OrderDTO orderDTO;
 }

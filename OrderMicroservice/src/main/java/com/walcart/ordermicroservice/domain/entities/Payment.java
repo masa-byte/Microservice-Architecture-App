@@ -18,11 +18,11 @@ public class Payment {
     @Column(name = "paypal_payment_id")
     private String paypalPaymentId;
 
-    @OneToOne(mappedBy = "payment")
+    @OneToOne()
+    @JoinColumn(name = "order_id")
     private Order order;
 
-    public Payment(String paypalPaymentId, Order order) {
+    public Payment(String paypalPaymentId) {
         this.paypalPaymentId = paypalPaymentId;
-        this.order = order;
     }
 }

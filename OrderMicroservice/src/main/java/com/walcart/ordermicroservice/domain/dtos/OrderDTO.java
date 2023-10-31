@@ -21,6 +21,7 @@ public class OrderDTO {
     private BigDecimal totalPrice;
     private OrderStatus status;
     private ZonedDateTime shipped;
+    private ZonedDateTime delivered;
     private Address shipmentAddress;
     private PaymentDTO paymentDTO;
     private List<OrderItemDTO> items;
@@ -36,6 +37,7 @@ public class OrderDTO {
                 orderDTO.getTotalPrice(),
                 orderDTO.getStatus(),
                 orderDTO.getShipped(),
+                orderDTO.getDelivered(),
                 orderDTO.getShipmentAddress(),
                 PaymentDTO.mapToPayment(orderDTO.getPaymentDTO()),
                 orderItems,
@@ -53,6 +55,7 @@ public class OrderDTO {
                 order.getTotalPrice(),
                 order.getStatus(),
                 order.getShipped(),
+                order.getDelivered(),
                 order.getShipmentAddress(),
                 PaymentDTO.mapToPaymentDTO(order.getPayment()),
                 orderItemsDTOs,

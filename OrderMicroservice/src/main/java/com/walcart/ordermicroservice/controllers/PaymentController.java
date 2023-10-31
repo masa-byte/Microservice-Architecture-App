@@ -20,9 +20,10 @@ public class PaymentController {
     }
 
     @PostMapping()
-    public ResponseEntity<PaymentDTO> createPayment(PaymentDTO paymentDTO) {
+    public ResponseEntity<PaymentDTO> createPayment(@RequestBody String paypalPaymentId) {
+        System.out.println(paypalPaymentId);
         return new ResponseEntity<>(
-                PaymentDTO.mapToPaymentDTO(paymentService.createPayment(paymentDTO)),
+                PaymentDTO.mapToPaymentDTO(paymentService.createPayment(paypalPaymentId)),
                 HttpStatus.CREATED
         );
     }

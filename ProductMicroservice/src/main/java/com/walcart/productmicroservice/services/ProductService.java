@@ -104,6 +104,18 @@ public class ProductService {
                 .orElse(null);
     }
 
+    public Product updateProductSalesCounter(long id, int soldCounter) {
+        return productRepository.findById(id)
+                .map(existingProduct -> {
+                    existingProduct.setSalesCounter(existingProduct.getSalesCounter() + soldCounter);
+                    existingProduct.setQuantity(existingProduct.getQuantity() - soldCounter);
+                    if(existingProduct.getQuantity() == 0)
+                        existingProduct.setStatus(ProductStatus.OUT_OF_STOCK);
+                    return productRepository.save(existingProduct);
+                })
+                .orElse(null);
+    }
+
     public boolean deleteProduct(long id) {
         return productRepository.findById(id)
                 .map(existingProduct -> {

@@ -25,9 +25,12 @@ public class OrderItem {
     @Column(name = "quantity")
     private Integer quantity;
 
-    public OrderItem(Integer quantity, Long productId, Order order) {
+    @Column(name = "rated")
+    private Boolean rated;
+
+    public OrderItem(Integer quantity, Long productId, Boolean rated) {
         this.quantity = quantity;
         this.productId = productId;
-        this.order = order;
+        this.rated = rated;
     }
 }

@@ -11,19 +11,19 @@ import lombok.NoArgsConstructor;
 public class OrderItemDTO {
     private Long productId;
     private Integer quantity;
-    private OrderDTO orderDTO;
+    private Boolean rated;
 
     public static OrderItem mapToOrderItem(OrderItemDTO orderItemDTO) {
         return new OrderItem(
                 orderItemDTO.getQuantity(),
                 orderItemDTO.getProductId(),
-                OrderDTO.mapToOrder(orderItemDTO.getOrderDTO())
+                orderItemDTO.getRated()
         );
     }
     public static OrderItemDTO mapToOrderItemDTO(OrderItem orderItem) {
         return new OrderItemDTO(
                 orderItem.getProductId(),
                 orderItem.getQuantity(),
-                OrderDTO.mapToOrderDTO(orderItem.getOrder()));
+                orderItem.getRated());
     }
 }

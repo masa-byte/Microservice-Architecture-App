@@ -10,5 +10,5 @@ import lombok.NoArgsConstructor;
 public class OrderItemDTO {
     private Long productId;
     private Integer quantity;
-    private OrderDTO orderDTO;
+    private Boolean rated;
 }

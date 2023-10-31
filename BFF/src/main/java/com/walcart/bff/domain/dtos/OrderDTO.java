@@ -17,6 +17,7 @@ public class OrderDTO {
     private BigDecimal totalPrice;
     private OrderStatus status;
     private ZonedDateTime shipped;
+    private ZonedDateTime delivered;
     private AddressDTO shipmentAddress;
     private PaymentDTO paymentDTO;
     private List<OrderItemDTO> items;

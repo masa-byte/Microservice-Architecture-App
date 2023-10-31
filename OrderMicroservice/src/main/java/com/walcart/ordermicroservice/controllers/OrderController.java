@@ -7,7 +7,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,7 +20,7 @@ public class OrderController {
     }
 
     @PostMapping()
-    public ResponseEntity<OrderDTO> createOrder(OrderDTO orderDTO) {
+    public ResponseEntity<OrderDTO> createOrder(@RequestBody OrderDTO orderDTO) {
         return new ResponseEntity<>(
                 OrderDTO.mapToOrderDTO(orderService.createOrder(orderDTO)),
                 HttpStatus.CREATED
@@ -31,6 +30,13 @@ public class OrderController {
     @GetMapping("/{id}")
     public ResponseEntity<OrderDTO> getOrderById(@PathVariable("id") long id) {
         return orderService.getOrderById(id)
+                .map(value -> new ResponseEntity<>(OrderDTO.mapToOrderDTO(value), HttpStatus.OK))
+                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    }
+
+    @GetMapping("/customer/{customerId}/product/{productId}")
+    public ResponseEntity<OrderDTO> getOrderByCustomerIdAndProductId(@PathVariable("customerId") long customerId, @PathVariable("productId") long productId) {
+        return orderService.getOrderByCustomerIdAndProductId(customerId, productId)
                 .map(value -> new ResponseEntity<>(OrderDTO.mapToOrderDTO(value), HttpStatus.OK))
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
@@ -46,7 +52,7 @@ public class OrderController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<OrderDTO> updateOrder(@PathVariable("id") long id, OrderDTO updatedOrderDTO) {
+    public ResponseEntity<OrderDTO> updateOrder(@PathVariable("id") long id, @RequestBody OrderDTO updatedOrderDTO) {
         Order updatedOrder = orderService.updateOrder(id, updatedOrderDTO);
         if (updatedOrder != null) {
             updatedOrderDTO = OrderDTO.mapToOrderDTO(updatedOrder);
